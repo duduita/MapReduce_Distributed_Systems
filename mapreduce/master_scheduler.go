@@ -1,3 +1,8 @@
+/*
+Aluno: Eduardo Menezes Moraes
+CES27 COMP22
+LAB 2 - MapReduce
+*/
 package mapreduce
 
 import (
@@ -31,7 +36,7 @@ func (master *Master) schedule(task *Task, proc string, filePathChan chan string
 		select {
 		case elem := <-master.failedOperationChan:
 			worker = <-master.idleWorkerChan
-			fmt.Println("Rodando novamente a operacao", elem.id, "com o worker", worker)
+			fmt.Println("Running operation", elem.id, "again with", worker.id)
 			wg.Add(1)
 			go master.runOperation(worker, elem, &wg)
 		default:

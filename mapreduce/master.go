@@ -1,3 +1,8 @@
+/*
+Aluno: Eduardo Menezes Moraes
+CES27 COMP22
+LAB 2 - MapReduce
+*/
 package mapreduce
 
 import (
@@ -30,11 +35,6 @@ type Master struct {
 	idleWorkerChan   chan *RemoteWorker
 	failedWorkerChan chan *RemoteWorker
 	failedOperationChan chan *Operation
-
-	///////////////////////////////
-	// ADD EXTRA PROPERTIES HERE //
-	///////////////////////////////
-	// Fault Tolerance
 }
 
 type Operation struct {
@@ -80,7 +80,7 @@ func (master *Master) acceptMultipleConnections() {
 
 // handleFailingWorkers will handle workers that fails during an operation.
 func (master *Master) handleFailingWorkers() {
-	var mutex = &sync.Mutex{}
+	var mutex = master.workersMutex
 	for elem := range master.failedWorkerChan {
 		mutex.Lock()
 		delete(master.workers, elem.id)

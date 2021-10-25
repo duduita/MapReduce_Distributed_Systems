@@ -32,13 +32,12 @@ func mapFunc(input []byte) (result []mapreduce.KeyValue) {
 
 	words = strings.FieldsFunc(text, delimiterFunc)
 
-
 	result = make([]mapreduce.KeyValue, 0)
 
 	for _, word := range words {
 		result = append(result, mapreduce.KeyValue{Key: strings.ToLower(word), Value: "1"})
 	}
-
+	fmt.Println("Output from mapFunc:\n",result)
 	return result
 }
 
@@ -50,7 +49,7 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	for _, item := range input {
 		_, ok := mapAux[item.Key]
 
-		if ok == false {
+		if !ok {
 			mapAux[item.Key] = 1
 		} else {
 			mapAux[item.Key]++
@@ -58,9 +57,9 @@ func reduceFunc(input []mapreduce.KeyValue) (result []mapreduce.KeyValue) {
 	}
 
 	for key, value := range mapAux {
-		value_str := strconv.Itoa(value)
-		result = append(result, mapreduce.KeyValue{Key: strings.ToLower(key), Value: value_str})
+		result = append(result, mapreduce.KeyValue{Key: strings.ToLower(key), Value: strconv.Itoa(value)})
 	}
+	fmt.Println("Output from reduceFunc:\n",result)
 	return result
 }
 
