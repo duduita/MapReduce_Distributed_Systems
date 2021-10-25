@@ -1,6 +1,7 @@
 package mapreduce
 
 import (
+	"fmt"
 	"log"
 	"sync"
 )
@@ -8,10 +9,6 @@ import (
 // Schedules map operations on remote workers. This will run until InputFilePathChan
 // is closed. If there is no worker available, it'll block.
 func (master *Master) schedule(task *Task, proc string, filePathChan chan string) int {
-	//////////////////////////////////
-	// YOU WANT TO MODIFY THIS CODE //
-	//////////////////////////////////
-
 	var (
 		wg        sync.WaitGroup
 		filePath  string
@@ -30,6 +27,15 @@ func (master *Master) schedule(task *Task, proc string, filePathChan chan string
 		worker = <-master.idleWorkerChan
 		wg.Add(1)
 		go master.runOperation(worker, operation, &wg)
+
+		select {
+		case elem := <-master.failedOperationChan:
+			worker = <-master.idleWorkerChan
+			fmt.Println("Rodando novamente a operacao", elem.id, "com o worker", worker)
+			wg.Add(1)
+			go master.runOperation(worker, elem, &wg)
+		default:
+		}
 	}
 
 	wg.Wait()
@@ -40,10 +46,6 @@ func (master *Master) schedule(task *Task, proc string, filePathChan chan string
 
 // runOperation start a single operation on a RemoteWorker and wait for it to return or fail.
 func (master *Master) runOperation(remoteWorker *RemoteWorker, operation *Operation, wg *sync.WaitGroup) {
-	//////////////////////////////////
-	// YOU WANT TO MODIFY THIS CODE //
-	//////////////////////////////////
-
 	var (
 		err  error
 		args *RunArgs
@@ -58,6 +60,7 @@ func (master *Master) runOperation(remoteWorker *RemoteWorker, operation *Operat
 		log.Printf("Operation %v '%v' Failed. Error: %v\n", operation.proc, operation.id, err)
 		wg.Done()
 		master.failedWorkerChan <- remoteWorker
+		master.failedOperationChan <- operation
 	} else {
 		wg.Done()
 		master.idleWorkerChan <- remoteWorker
